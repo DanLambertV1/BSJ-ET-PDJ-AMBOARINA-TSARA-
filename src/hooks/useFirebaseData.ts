@@ -120,7 +120,7 @@ export function useFirebaseData() {
           quantitySold: data.quantitySold || 0,
           minStock: data.minStock,
           description: data.description
-        });
+        };
       });
 
       console.log(`📦 Loaded ${products.length} products from Firebase`);
@@ -1088,7 +1088,8 @@ function generateMockSales(): RegisterSale[] {
       seller: sellers[Math.floor(Math.random() * sellers.length)],
       quantity,
       price: Math.round(price * 100) / 100,
-      total: Math.round(quantity * price * 100) / 100
+      total: Math.round(quantity * price * 100) / 100,
+      created_at: new Date()
     };
   });
 }
