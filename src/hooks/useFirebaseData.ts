@@ -373,8 +373,10 @@ export function useFirebaseData() {
       return;
     }
     
-    // ✅ ENHANCED: Use the new stock calculation system
-    const updatedProducts = products.map(product => {
+    // ✅ IMPROVED: Enhanced stock calculation with better logging
+    const updatedProducts = products.map((product, index) => {
+      console.log(`🔄 [${index + 1}/${products.length}] Recalculating stock for ${product.name}...`);
+      
       const calculation = calculateStockFinal(product, registerSales);
       
       // Ensure we have an initial stock value
@@ -383,6 +385,11 @@ export function useFirebaseData() {
       // Use calculated values from the new system
       const totalQuantitySold = calculation.validSales.reduce((sum, sale) => sum + sale.quantity, 0);
       const finalStock = calculation.finalStock;
+      
+      // Log any inconsistencies
+      if (calculation.hasInconsistentStock) {
+        console.warn(`⚠️ Stock inconsistency for ${product.name}: ${calculation.warningMessage}`);
+      }
       
       const updated = {
         ...product,
@@ -406,6 +413,7 @@ export function useFirebaseData() {
     try {
       const batch = writeBatch(db);
       let hasChanges = false;
+      let updatedCount = 0;
 
       updatedProducts.forEach((updatedProduct, index) => {
         const originalProduct = products[index];
@@ -422,12 +430,13 @@ export function useFirebaseData() {
             updatedAt: new Date().toISOString()
           });
           hasChanges = true;
+         updatedCount++;
         }
       });
 
       if (hasChanges) {
         await batch.commit();
-        console.log('✅ Product quantities updated in Firebase');
+       console.log(`✅ Product quantities updated in Firebase (${updatedCount} products changed)`);
       } else {
         console.log('ℹ️ No product quantity changes to save');
       }
@@ -438,7 +447,12 @@ export function useFirebaseData() {
     // Regenerate alerts after stock changes
     await generateAlerts();
     
-    console.log('✅ Stock recalculation completed');
+   console.log('✅ Stock recalculation completed successfully');
+   
+   // Calculate and log total statistics for verification
+   const totalStock = updatedProducts.reduce((sum, p) => sum + p.stock, 0);
+   const totalSold = updatedProducts.reduce((sum, p) => sum + (p.quantitySold || 0), 0);
+   console.log(`📊 Final statistics: ${totalStock} units in stock, ${totalSold} units sold`);
   };
 
   const calculateDashboardStats = (sales: RegisterSale[]) => {
