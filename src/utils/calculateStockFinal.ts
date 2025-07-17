@@ -124,9 +124,6 @@ function findProductSales(product: Product, allSales: RegisterSale[]): RegisterS
   const normalizedProductName = normalizeString(product.name);
   const normalizedProductCategory = normalizeString(product.category);
 
-  // Use a more efficient approach with early returns
-  const matchedSales: RegisterSale[] = [];
-  
   const matchedSales = allSales.filter(sale => {
     const normalizedSaleName = normalizeString(sale.product);
     const normalizedSaleCategory = normalizeString(sale.category);
