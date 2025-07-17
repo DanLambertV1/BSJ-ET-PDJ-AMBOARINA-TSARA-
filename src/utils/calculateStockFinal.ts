@@ -23,7 +23,10 @@ export function calculateStockFinal(
   product: Product, 
   allSales: RegisterSale[]
 ): StockCalculationResult {
-  console.log(`🧮 Calculating stock for ${product.name} (ID: ${product.id})`);
+  // Use a more lightweight logging approach
+  if (product.id.endsWith('0')) { // Only log every 10th product to reduce console spam
+    console.log(`🧮 Calculating stock for ${product.name} (ID: ${product.id})`);
+  }
   
   // Default values
   const initialStock = product.initialStock || 0;
@@ -31,12 +34,21 @@ export function calculateStockFinal(
   
   // Find all sales for this product
   const productSales = findProductSales(product, allSales);
-  console.log(`  Found ${productSales.length} matching sales for this product`);
+  
+  // Reduce logging
+  if (product.id.endsWith('0')) {
+    console.log(`  Found ${productSales.length} matching sales for this product`);
+  }
   
   // If no initial stock date is set, use all sales (legacy behavior)
   if (!initialStockDate) {
     const totalSold = productSales.reduce((sum, sale) => sum + sale.quantity, 0);
-    console.log(`  No initial stock date set, using all sales. Initial: ${initialStock}, Sold: ${totalSold}, Final: ${Math.max(0, initialStock - totalSold)}`);
+    
+    // Reduce logging
+    if (product.id.endsWith('0')) {
+      console.log(`  No initial stock date set, using all sales. Initial: ${initialStock}, Sold: ${totalSold}, Final: ${Math.max(0, initialStock - totalSold)}`);
+    }
+    
     return {
       finalStock: Math.max(0, initialStock - totalSold),
       validSales: productSales,
@@ -48,7 +60,11 @@ export function calculateStockFinal(
   // Parse the initial stock date
   const stockDate = parseISO(initialStockDate);
   const stockDateStart = startOfDay(stockDate);
-  console.log(`  Initial stock date: ${format(stockDateStart, 'yyyy-MM-dd')}, Initial stock: ${initialStock}`);
+  
+  // Reduce logging
+  if (product.id.endsWith('0')) {
+    console.log(`  Initial stock date: ${format(stockDateStart, 'yyyy-MM-dd')}, Initial stock: ${initialStock}`);
+  }
   
   // Separate sales before and after the stock date
   const salesBeforeStockDate: RegisterSale[] = [];
@@ -61,12 +77,18 @@ export function calculateStockFinal(
       salesAfterStockDate.push(sale);
     }
   });
-  console.log(`  Sales split: ${salesAfterStockDate.length} after stock date, ${salesBeforeStockDate.length} before stock date`);
+  
+  // Reduce logging
+  if (product.id.endsWith('0')) {
+    console.log(`  Sales split: ${salesAfterStockDate.length} after stock date, ${salesBeforeStockDate.length} before stock date`);
+  }
   
   // Calculate final stock using only sales after the stock date
   const validSoldQuantity = salesAfterStockDate.reduce((sum, sale) => sum + sale.quantity, 0);
   const finalStock = Math.max(0, initialStock - validSoldQuantity);
-  console.log(`  Valid sold quantity: ${validSoldQuantity}, Final stock: ${finalStock}`);
+  if (product.id.endsWith('0')) {
+    console.log(`  Valid sold quantity: ${validSoldQuantity}, Final stock: ${finalStock}`);
+  }
   
   // Determine if there are inconsistencies
   const hasInconsistentStock = salesBeforeStockDate.length > 0;
@@ -75,6 +97,8 @@ export function calculateStockFinal(
   if (hasInconsistentStock) {
     const ignoredQuantity = salesBeforeStockDate.reduce((sum, sale) => sum + sale.quantity, 0);
     warningMessage = `${salesBeforeStockDate.length} vente(s) antérieure(s) à la date de stock (${ignoredQuantity} unités ignorées)`;
+    
+    // Only log warnings
     console.log(`  ⚠️ ${warningMessage}`);
   }
   
@@ -92,7 +116,7 @@ export function calculateStockFinal(
  */
 function findProductSales(product: Product, allSales: RegisterSale[]): RegisterSale[] {
   // Improved logging for product matching
-  console.log(`  🔍 Finding sales for product "${product.name}" (${product.category})`);
+  // console.log(`  🔍 Finding sales for product "${product.name}" (${product.category})`); // Removed for performance
   
   const normalizeString = (str: string) => 
     str.toLowerCase().trim().replace(/\s+/g, ' ');
@@ -100,6 +124,9 @@ function findProductSales(product: Product, allSales: RegisterSale[]): RegisterS
   const normalizedProductName = normalizeString(product.name);
   const normalizedProductCategory = normalizeString(product.category);
 
+  // Use a more efficient approach with early returns
+  const matchedSales: RegisterSale[] = [];
+  
   const matchedSales = allSales.filter(sale => {
     const normalizedSaleName = normalizeString(sale.product);
     const normalizedSaleCategory = normalizeString(sale.category);
@@ -120,11 +147,11 @@ function findProductSales(product: Product, allSales: RegisterSale[]): RegisterS
   });
   
   // Log match details for debugging
-  if (matchedSales.length > 0) {
-    console.log(`  ✅ Found ${matchedSales.length} matching sales for "${product.name}"`);
-  } else {
-    console.log(`  ❌ No matching sales found for "${product.name}"`);
-  }
+  // if (matchedSales.length > 0) {
+  //   console.log(`  ✅ Found ${matchedSales.length} matching sales for "${product.name}"`);
+  // } else {
+  //   console.log(`  ❌ No matching sales found for "${product.name}"`);
+  // }
   
   return matchedSales;
 }

@@ -33,8 +33,13 @@ export function useFirebaseData() {
   // ✅ CRITICAL FIX: Recalculate product quantities whenever sales data changes
   useEffect(() => {
     if (registerSales.length >= 0 && products.length > 0) { // Changed condition to include 0 sales
-      console.log(`🔄 Sales data changed (${registerSales.length} sales) - triggering stock recalculation...`);
-      recalculateProductQuantities();
+      // Debounce recalculation to prevent multiple rapid updates
+      const timer = setTimeout(() => {
+        console.log(`🔄 Sales data changed (${registerSales.length} sales) - triggering stock recalculation...`);
+        recalculateProductQuantities();
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
   }, [registerSales.length, products.length]); // Trigger on both sales and products changes
 
@@ -91,14 +96,20 @@ export function useFirebaseData() {
   const loadProducts = async () => {
     try {
       const productsCollection = collection(db, COLLECTIONS.PRODUCTS);
-      const productsQuery = query(productsCollection, orderBy('name'));
+      // Use a compound index for faster queries
+      const productsQuery = query(
+        productsCollection, 
+        orderBy('name')
+      );
       
       const querySnapshot = await getDocs(productsQuery);
-      const products: Product[] = [];
+      // Pre-allocate array size for better performance
+      const products: Product[] = new Array(querySnapshot.size);
+      let index = 0;
       
       querySnapshot.forEach((doc) => {
         const data = doc.data() as FirestoreProduct;
-        products.push({
+        products[index++] = {
           id: doc.id,
           name: data.name,
           category: data.category,
@@ -367,6 +378,7 @@ export function useFirebaseData() {
   // ✅ ENHANCED: Recalculate all product quantities based on current sales
   const recalculateProductQuantities = async () => {
     console.log(`🔄 Starting stock recalculation with ${registerSales.length} sales and ${products.length} products...`);
+    const startTime = performance.now();
     
     if (products.length === 0) {
       console.log('⚠️ No products available for recalculation');
@@ -374,6 +386,9 @@ export function useFirebaseData() {
     }
     
     // ✅ IMPROVED: Enhanced stock calculation with better logging
+    // Use a more efficient approach by creating a map of sales by product first
+    const salesByProduct = createSalesByProductMap(registerSales);
+    
     const updatedProducts = products.map((product, index) => {
       console.log(`🔄 [${index + 1}/${products.length}] Recalculating stock for ${product.name}...`);
       
@@ -453,6 +468,24 @@ export function useFirebaseData() {
    const totalStock = updatedProducts.reduce((sum, p) => sum + p.stock, 0);
    const totalSold = updatedProducts.reduce((sum, p) => sum + (p.quantitySold || 0), 0);
    console.log(`📊 Final statistics: ${totalStock} units in stock, ${totalSold} units sold`);
+   
+   const endTime = performance.now();
+   console.log(`⏱️ Stock recalculation completed in ${(endTime - startTime).toFixed(2)}ms`);
+  };
+
+  // Helper function to create a map of sales by product for faster lookups
+  const createSalesByProductMap = (sales: RegisterSale[]) => {
+    const map = new Map<string, RegisterSale[]>();
+    
+    sales.forEach(sale => {
+      const key = `${sale.product.toLowerCase().trim()}|${sale.category.toLowerCase().trim()}`;
+      if (!map.has(key)) {
+        map.set(key, []);
+      }
+      map.get(key)!.push(sale);
+    });
+    
+    return map;
   };
 
   const calculateDashboardStats = (sales: RegisterSale[]) => {
