@@ -8,13 +8,12 @@ import { getStorage } from 'firebase/storage';
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDvnLRDGEzEPT0lndhb24cJu0un8D3bm6w",
-  authDomain: "plaisir-des-jeux.firebaseapp.com",
-  projectId: "plaisir-des-jeux",
-  storageBucket: "plaisir-des-jeux.firebasestorage.app",
-  messagingSenderId: "188768357815",
-  appId: "1:188768357815:web:a078b688777e270090ac32",
-  measurementId: "G-RC8YEL8P7Q"
+  apiKey: "AIzaSyArF2HQYsikpctyr_B38MJyDQhtOznP9iI",
+  authDomain: "suiviventes-v3-moderne.firebaseapp.com",
+  projectId: "suiviventes-v3-moderne",
+  storageBucket: "suiviventes-v3-moderne.firebasestorage.app",
+  messagingSenderId: "570814845718",
+  appId: "1:570814845718:web:0b5225abca8bf440947637"
 };
 
 // Initialize Firebase

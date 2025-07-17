@@ -853,7 +853,7 @@ export default function StockModule({
       </div>
 
       {/* ✅ FIXED: Dynamic Statistics Cards with filtered metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -888,24 +888,6 @@ export default function StockModule({
           </div>
           <p className="text-3xl font-bold text-white">{dynamicStats.totalStock.toLocaleString()}</p>
           <p className="text-green-400 text-sm">Stock Total</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-gradient-to-br from-purple-500/10 to-purple-600/10 backdrop-blur-xl 
-                     border border-purple-500/20 rounded-xl p-6"
-        >
-          <div className="flex items-center space-x-3 mb-3">
-            <DollarSign className="w-6 h-6 text-purple-400" />
-            <div>
-              <p className="text-slate-400 text-sm">CA TOTAL</p>
-              <p className="text-slate-400 text-xs">chiffre d'affaires</p>
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-white">{formatCurrency(dynamicStats.totalRevenue)}</p>
-          <p className="text-purple-400 text-sm">Chiffre d'Affaires</p>
         </motion.div>
 
         <motion.div
@@ -954,17 +936,17 @@ export default function StockModule({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 backdrop-blur-xl 
-                   border border-yellow-500/20 rounded-xl p-6"
+        className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 backdrop-blur-xl 
+                   border border-orange-500/20 rounded-xl p-6"
       >
         <div className="flex items-center space-x-3 mb-3">
-          <AlertCircle className="w-6 h-6 text-yellow-400" />
+          <AlertTriangle className="w-6 h-6 text-orange-400" />
           <div>
             <p className="text-slate-400 text-sm">Stock Incohérent</p>
             <p className="text-2xl font-bold text-white">{dynamicStats.inconsistentStock}</p>
           </div>
         </div>
-        <p className="text-yellow-400 text-sm">Ventes antérieures</p>
+        <p className="text-orange-400 text-sm">Ventes antérieures</p>
       </motion.div>
     </div>
 
