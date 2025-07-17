@@ -101,6 +101,9 @@ export default function StockModule({
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showImportModal, setShowImportModal] = useState(viewState.modals?.importModal || false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [syncResult, setSyncResult] = useState<{ success: boolean; message: string; summary?: string } | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [syncNotification, setSyncNotification] = useState<{
     show: boolean;
     message: string;
@@ -541,6 +544,29 @@ export default function StockModule({
 
   const selectAllFiltered = () => {
     setSelectedProducts(new Set(filteredProducts.map(product => product.id)));
+  };
+
+  const handleSyncProducts = async () => {
+    setIsSyncing(true);
+    try {
+      const result = await autoSyncProductsFromSales();
+      setSyncResult({
+        success: true,
+        message: `${result.created.length} produits synchronisés avec succès`,
+        summary: result.summary
+      });
+      setShowSyncModal(true);
+      // Refresh data to show updated products
+      onRefreshData();
+    } catch (error) {
+      setSyncResult({
+        success: false,
+        message: 'Erreur lors de la synchronisation des produits'
+      });
+      setShowSyncModal(true);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   // Enhanced autoSyncProductsFromSales with notification

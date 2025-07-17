@@ -37,7 +37,7 @@ export function Dashboard({ dashboardStats, registerSales, products, loading }: 
   const [filterCategory, setFilterCategory] = useState('all');
   const [sortField, setSortField] = useState<keyof RegisterSale>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [showFirebaseSetup, setShowFirebaseSetup] = useState(true);
+  const [showFirebaseSetup, setShowFirebaseSetup] = useState(false);
   
   const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
@@ -87,9 +87,14 @@ export function Dashboard({ dashboardStats, registerSales, products, loading }: 
   const dynamicStats = useMemo(() => {
     const sales = filteredSalesByPeriod;
     
+    // Ensure we're using precise calculations with rounding to 2 decimal places
     const totalSales = sales.length;
-    const totalRevenue = sales.filter(sale => sale.total >= 0).reduce((sum, sale) => sum + sale.total, 0);
-    const totalExpenses = Math.abs(sales.filter(sale => sale.total < 0).reduce((sum, sale) => sum + sale.total, 0));
+    const totalRevenue = Number(sales.filter(sale => sale.total >= 0)
+      .reduce((sum, sale) => sum + sale.total, 0)
+      .toFixed(2));
+    const totalExpenses = Number(Math.abs(sales.filter(sale => sale.total < 0)
+      .reduce((sum, sale) => sum + sale.total, 0))
+      .toFixed(2));
     const totalProducts = new Set(sales.map(s => s.product)).size;
     const lowStockAlerts = lowStockProducts.length;
 
@@ -99,7 +104,8 @@ export function Dashboard({ dashboardStats, registerSales, products, loading }: 
           acc[sale.product] = { quantity: 0, revenue: 0 };
         }
         acc[sale.product].quantity += sale.quantity;
-        acc[sale.product].revenue += sale.total;
+        // Ensure precise calculations with rounding
+        acc[sale.product].revenue = Number((acc[sale.product].revenue + sale.total).toFixed(2));
       }
       return acc;
     }, {} as { [key: string]: { quantity: number; revenue: number } });
@@ -115,7 +121,8 @@ export function Dashboard({ dashboardStats, registerSales, products, loading }: 
           acc[sale.seller] = { quantity: 0, revenue: 0 };
         }
         acc[sale.seller].quantity += sale.quantity;
-        acc[sale.seller].revenue += sale.total;
+        // Ensure precise calculations with rounding
+        acc[sale.seller].revenue = Number((acc[sale.seller].revenue + sale.total).toFixed(2));
       }
       return acc;
     }, {} as { [key: string]: { quantity: number; revenue: number } });
@@ -138,7 +145,8 @@ export function Dashboard({ dashboardStats, registerSales, products, loading }: 
           acc[normalizedRegister] = { quantity: 0, revenue: 0 };
         }
         acc[normalizedRegister].quantity += sale.quantity;
-        acc[normalizedRegister].revenue += sale.total;
+        // Ensure precise calculations with rounding
+        acc[normalizedRegister].revenue = Number((acc[normalizedRegister].revenue + sale.total).toFixed(2));
       }
       return acc;
     }, {} as { [key: string]: { quantity: number; revenue: number } });
